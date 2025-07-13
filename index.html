@@ -106,7 +106,7 @@
 
     .profezia {
       font-style: italic;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       max-width: 600px;
       margin: 30px auto;
       opacity: 0;
@@ -141,7 +141,7 @@
       user-select: none;
       pointer-events: none;
       font-style: italic;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
 
     .indica {
@@ -161,6 +161,32 @@
       pointer-events: none;
       transition: color 0.5s ease, opacity 0.5s ease;
     }
+
+     .indica.nascondi {
+      color: #fff;
+      opacity: 0.1;
+      pointer-events: none;
+      transition: color 0.5s ease, opacity 0.5s ease;
+    }
+ /* 👇 Footer fissa in basso */
+    .sfera-footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #777;
+      font-style: normal;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .sfera-footer.visibile {
+      opacity: 1;
+    }
+
   </style>
 </head>
 <body>
@@ -168,6 +194,7 @@
   <div class="sfera" id="sfera" title="Clicca per rivelare la profezia"></div>
   <div class="profezia" id="profezia"></div>
   <div class="indica" id="indica">Clicca sulla sfera per far comparire la profezia</div>
+  <p class="sfera-footer" id="footer">La sfera ha bisogno di riposo. Chiudi per favore la pagina.</p>
 
   <script>
     const frasi = [
@@ -418,6 +445,7 @@
     const profezia = document.getElementById("profezia");
     const sfera = document.getElementById("sfera");
     const indica = document.getElementById("indica");
+    const footer = document.getElementById("footer");
 
     sfera.addEventListener("click", () => {
       if (!profezia.classList.contains("mostra")) {
@@ -433,6 +461,11 @@
           indica.classList.add("nascondi");
           // Torna al glow blu originale con animazione
           sfera.classList.remove("attiva");
+
+  	  // Mostra il messaggio in basso con fade-in
+          setTimeout(() => {
+            footer.classList.add("visibile");
+          }, 3000);
         }, 4000);
       }
     });
