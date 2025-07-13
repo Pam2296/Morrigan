@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oracolo di Morrigan</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #222;
+      font-family: "Garamond", serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Full_Moon_Luc_Viatour.jpg/640px-Full_Moon_Luc_Viatour.jpg');
+      background-repeat: no-repeat;
+      background-position: top 2% right 2%;
+      background-size: 80px;
+      user-select: none;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        box-shadow: 0 0 15px 5px rgba(81,153,215, 0.4);
+        opacity: 0.9;
+      }
+      50% {
+        box-shadow: 0 0 40px 15px rgba(81,153,215, 0.51);
+        opacity: 1;
+      }
+    }
+
+    @keyframes shine {
+      0% { left: -100%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    @keyframes floatText {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+
+    @keyframes fadeZoomIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .sfera {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #dcdcdc 0%, #fff 70%, #ccc 100%);
+      box-shadow: 0 0 15px 5px rgba(50, 124, 170, 0.4);
+      margin: 20px auto;
+      animation: glowPulse 4s ease-in-out infinite;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+      position: relative;
+      user-select: none;
+      opacity: 0.95;
+    }
+
+    /* Quando la sfera è attiva (cliccata) cambia il colore del bagliore */
+    .sfera.attiva {
+      animation: none;
+      box-shadow: 0 0 40px 15px rgba(244, 210, 105, 0.8);
+    }
+
+    .sfera:hover {
+      box-shadow: 0 0 60px rgba(244, 210, 105, 0.9);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 35px; /* modificato qui */
+      margin-top: -50px;
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+      animation: floatText 5s ease-in-out infinite;
+      cursor: default;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shine 5s infinite;
+    }
+
+    .profezia {
+      font-style: italic;
+      font-size: 1.3rem;
+      max-width: 600px;
+      margin: 30px auto;
+      opacity: 0;
+      transform: scale(0.95);
+      min-height: 80px;
+      user-select: text;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      pointer-events: none;
+      position: relative;
+      color: #222;
+    }
+
+    .profezia.mostra {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+      animation: fadeZoomIn 0.8s ease-out forwards;
+      animation-delay: 0;
+    }
+
+    .profezia::after {
+      content: attr(data-text);
+      display: block;
+      transform: scaleY(-1);
+      opacity: 0.1;
+      filter: blur(1px);
+      margin-top: 2px;
+      color: inherit;
+      max-width: 600px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: none;
+      pointer-events: none;
+      font-style: italic;
+      font-size: 1.3rem;
+    }
+
+    .indica {
+      font-size: 0.9rem;
+      color: #777;
+      margin-top: 15px;
+      font-style: normal;
+      opacity: 0.6;
+      cursor: default;
+      user-select: none;
+      transition: color 0.5s ease, opacity 0.5s ease;
+    }
+
+    .indica.nascondi {
+      color: #fff;
+      opacity: 0.1;
+      pointer-events: none;
+      transition: color 0.5s ease, opacity 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>Io sono la Morrigan <br>il mio dono è la verità.</h1>
+  <div class="sfera" id="sfera" title="Clicca per rivelare la profezia"></div>
+  <div class="profezia" id="profezia"></div>
+  <div class="indica" id="indica">Clicca sulla sfera per far comparire la profezia</div>
+
+  <script>
+    const frasi = [
+      "Il caos ti segue perché sa che con te si diverte.",
+	"Non sei in ritardo: sei una bomba a orologeria col timer personalizzato.",
+	"Segui il tuo cuore. Ma portati dietro un drago per sicurezza.",
+	"Oggi è il giorno perfetto per sconvolgere le aspettative. Fallo con glitter.",
+	"Quando inciampi pensa che stai solo provando nuove coreografie.",
+	"Se ti dicono “non si fa”, rispondi: “perfetto, lo faccio due volte",
+	"Hai tagliato le catene solo per usarle come collana.",
+      "Le stelle non ti guidano: ti seguono.",
+      "Se ti senti persə, probabilmente sei in mezzo a una trilogia.",
+      "Ogni porta chiusa è solo un invito a entrare dalla finestra.",
+      "Hai fatto pace con il buio, ma lui ti teme ancora.",
+      "Se ti dicono che non puoi, prova a ridere mentre lo fai.",
+      "Hai trasformato ogni no in un trucco di scena.",
+      "Certe risposte non sono nella sfera. Sono nei capitoli che ti rifiuti di rileggere.",
+      "Non è confusione. È worldbuilding emotivo.",
+      "Le cicatrici sono segnalibri non ancora rimossi, puoi farcela.",
+      "A volte tener duro è solo girare pagina.",
+      "Ammetti di avere un villain interiore. Poi fagli fare un cameo.",
+      "Sei la prova che le fiabe funzionano meglio con un po' di fuoco.",
+      "La risposta che cerchi è dentro di te. Ma ha chiesto silenzio e una tazza di tè. Dalle tempo.",
+      "Il tuo potere non dorme. Sei tu che hai abbassato la voce.",
+      "Il buio ti teme perché non riesce a nasconderti.",
+      "Hai la tempesta dentro. Eppure aspetti il temporale fuori.",
+      "La tua luce fa paura solo a chi non ha mai acceso la propria.",
+      "Oggi è il giorno perfetto per fare qualcosa di discutibile ma indimenticabile.",
+      "Potresti conquistare il mondo… o ordinare una pizza. Entrambe valide.",
+      "Sii il problema. Ma con un vestito favoloso.",
+      "Il tuo intuito oggi è più acuto di una recensione su Goodreads.",
+      "Oggi è il giorno perfetto per essere “troppo”. Vai e stupisci.",
+      "Brilla lo stesso. Falli accecare.",
+      "Oggi fai tutto ciò che ti rende felice o scandalosa. Bonus se entrambi.",
+      "Le regole sono consigli travestiti. Ribellati con grazia.",
+      "Non sei natə per piacere, ma per incendiare.",
+      "Se ti dicono di abbassare la voce, ridi più forte.",
+      "Chi cerca di capirti finirà per perdersi. Ottima strategia.",
+      "Oggi puoi fare tutto. Tranne restare zitta. Quello mai.",
+      "Hai imparato l’arte della guerra da ogni tua ferita.",
+      "Il tuo spirito guida è un’ombra sexy con daddy issues.",
+      "Hai tutto per farli impazzire. Usa solo una parte.",
+      "Chi prova a spegnerti, si brucia le mani.",
+      "La tua pazienza ha le zanne.",
+      "Il tuo cuore sa danzare anche sulla rovina.",
+      "Ogni volta che dubiti di te, un’ombra sexy perde l’addominale. Smettila.",
+      "Ogni volta che sorridi, un re perde il trono. Continua così.",
+      "Sei il tipo di visione che fa sbandare i bat boys in volo.",
+      "Il tuo destino è rubare la scena.. E il cuore del comandante dei guerrieri alati.",
+      "Le leggende ti aspettano: sei in ritardo solo per stile.",
+      "L’universo ti supporta. Anche se a volte si diverte a guardarti sbroccare.",
+      "Ti stai complicando la vita? Ottimo. È così che si crea una leggenda.",
+      "Hai chiesto luce? Ecco un lampo. Ora decidi tu dove colpire.",
+      "Rhysand ti sogna di notte... ma come monito per i piani d’emergenza.",
+      "Non sei troppo. Sei solo nel libro sbagliato. Cambia genere.",
+      "Brilli più del petto nudo di Rhysand sotto la luna piena. E non è poco.",
+      "Sei il tipo di mistero che neanche il Suriel vuole spoilerare.",
+      "La tua versione migliore non è ancora legale in alcuni regni.",
+      "Non tutti possono stare nel tuo cerchio magico. E va bene così.",
+      "La tua indecisione è solo strategia.",
+      "Lascia che ti giudichino. È l’unica cosa interessante che faranno.",
+      "Ti hanno dato troppi limiti. Restituiscili.",
+      "Ogni volta che pensi troppo, una parte di te si annoia a morte.",
+      "Smetti di essere il finale pacifico. Sii il colpo di scena.",
+      "Il tuo futuro è luminoso. Indossa gli occhiali da sole e fai finta di niente.",
+      "Il tuo istinto ha ragione. Anche quando è scortese.",
+      "Se ti senti fuori posto, è perché sei troppo avanti per il copione.",
+      "Sei l’unica creatura capace di far perdere la pazienza a Feyre e far ridere Azriel. Contemporaneamente.",
+      "Non cercare risposte fuori. Quelle dentro di te sono già abbastanza scomode.",
+      "Brilla. Tanto la modestia non ti ha mai vestita bene.",
+      "Non tutti ti capiscono. Alcuni nemmeno capiscono i cartelli ‘spingi’.",
+      "Sei a un bivio: o segui il cuore, o i tuoi piani vendicativi. Entrambi validi.",
+      "Se la vita ti dà limoni… spremili su una ferita nemica.",
+      "Se ti senti fuori posto, è solo perché il posto era piccolo.",
+      "Smetti di cercarti nei riflessi degli altri. Il tuo specchio funziona benissimo.",
+      "Hai più risposte di quante ne fai vedere. Strategia eccellente.",
+      "La tua ironia è una forma di sopravvivenza magica. Continua a usarla.",
+      "Sei il tipo di persona che l’universo non osa ignorare.",
+      "Riesci a sembrare innocua. Finché non parli.",
+      "Non cercare il segno. Sei tu il segno.",
+      "Alcuni scelgono la pace. Tu, a volte, scegli il fuoco. Giustamente.",
+      "Fingi di essere cinicə, ma stai solo aspettando qualcuno che ti dica “ti ho scelto in ogni universo”.",
+      "Chi ti cerca per spegnerti, ignora il fuoco che porti dentro.",
+      "Nel momento più oscuro, il tuo sorriso sarà la luce più temuta.",
+      "Sei quella che legge per evadere e finisce per urlare contro le pagine.",
+      "Nel momento in cui spezzerai la catena, sarai l’incubo dei tiranni.",
+      "Il fuoco nel tuo cuore non conosce limiti, solo opportunità.",
+      "Non temere di perdere chi non sa riconoscere il tuo valore.",
+      "Quando penseranno che ti sei fermata, sarai già ovunque.",
+      "Il potere non è dono, è conquista; e tu stai per reclamare il tuo trono.",
+      "Non lasciare che ti definiscano: sei l’eccezione alla regola.",
+      "Le fate mentono, i re tradiscono, tu però... tu hai un tbr da paura.",
+      "Non cercare di domare la bestia dentro di te; lei è la tua vera forza.",
+      "Il destino ti ha scelto come lama e scudo, ma il tuo cuore è la tua più grande arma.",
+      "Chi osa sfidarti dimentica che il fuoco non chiede mai il permesso.",
+      "Qualcuno ti guarda come se fossi una scena vietata ai minori in un libro da 700 pagine. E lo sei.",
+      "La chiave che cerchi sarà nascosta nel sorriso di chi ti sottovaluta.",
+      "Non temere l’ombra, è lì per mostrarti quanto puoi brillare.",
+      "Hai l’energia di chi legge fantasy solo per i combattimenti… orizzontali.",
+      "L’oscurità è solo un sipario: dietro, tu danzi da regina.",
+      "Non tutte le tempeste distruggono, alcune ti fanno volare più in alto.",
+      "Quando il fuoco brucerà nel gelo, sarai tu a portare la primavera.",
+      "Non temere di perdere la strada: spesso è il modo migliore per crearne una nuova.",
+      "Il tuo hobby preferito? Leggere battaglie epiche e poi rileggere solo le scene del bacio. Per scienza.",
+      "Il vento porta via i ricordi, ma non il fuoco che porti dentro.",
+      "Non sei solə: sei in una relazione poliamorosa con 7 protagonisti di fantasyromance.",
+      "Sei nata sotto un cielo ribelle, non aspettarti costellazioni tranquille.",
+      "Quando la notte ti avvolge, ricorda: sei la luce che non smette mai di brillare.",
+      "Non cercare la tua stella polare, sii la stella che guida gli altri.",
+      "Ogni stella ha un segreto, il tuo è che non puoi essere contenuta.",
+      "Le stelle non chiedono permesso per brillare, e neanche tu dovresti farlo.",
+      "Se fossi una stagione, saresti primavera: un po’ imprevedibile, ma sempre promettente",
+      "Sei una supernova in un mondo di stelle spente.",
+      "Sei una citazione da sottolineare con tre evidenziatori e un sospiro.",
+      "Non preoccuparti, l’universo ha un piano. Anche se a volte sembra una bozza scritta di fretta.",
+      "Hai il carisma di un personaggio secondario che ruba tutta la scena.",
+      "Non hai bisogno di magie: hai il carisma di una protagonista che spezza maledizioni… e cuori.",
+      "Nessuno può spezzarti… tranne forse un fae tenebroso con una voce roca e un passato oscuro.",
+      "Hai un’aura glitterata con accesso limitato. Le fate chiedono l’invito.",
+      "Se la tua energia fosse un libro, sarebbe vietato ai minori di 500 anni.",
+      "Se ti senti persə, segui la terza nuvola a sinistra. Poi chiedi a un corvo.",
+      "Ti segue una buona stella. Ma si distrae facilmente.",
+      "Tutte le risposte sono dentro di te. Ma stanno facendo silenzio stampa. Dalle tempo.",
+      "Hai un’energia così rara che persino le stelle fanno refresh per seguirti.",
+      "Il tuo tipo ideale? Occhi d’ombra, voce bassa, zero morale e trauma non elaborato.",
+      "Hai il passo da Valchiria in pausa caffè e la mente da stratega che ha già vinto.",
+      "Hai l’energia di chi sa danzare con i demoni e ridere durante l’apocalisse.",
+      "Hai l’aria di chi può negoziare con una creatura millenaria… e uscirne con un invito a cena.",
+      "Nessuno può capirti... tranne forse un fae di 500 anni con gli addominali scolpiti.",
+      "Questo è il tuo mood: truccatə da battaglia e prontə a parlare di plot twist.",
+      "Sei la creatura che l’eroe teme e il villain adora.",
+      "Sei il tipo che negozia con antichi spiriti… e alla fine sono loro a chiedere un favore.",
+      "Sei così irresistibile che anche il protagonista secondario fa il colpo di scena per te.",
+      "Il tuo carisma è così potente che persino le ombre si fanno avanti per farsi notare.",
+      "Le creature leggendarie ti osservano chiedendosi se tu sia il prossimo enigma da decifrare.",
+      "Ti muovi come chi sa che il vero potere sta nel sorriso che nascondi sotto la pelle.",
+      "Hai un talento innato per trasformare i drammi in spettacoli… e i nemici in fan entusiasti.",
+      "La tua comfort zone è angoscia narrativa e flirt letali.",
+      "Segui il tuo cuore. E se sbaglia, dai la colpa alla sfera.",
+      "La sfera dice no. Ma puoi sempre ignorarla come fai con le red flag.",
+      "Il tuo spirito guida è un libro con finali traumatici e battute inappropriate.",
+      "In fondo sei dolce… tipo un veleno con retrogusto fragola.",
+      "Hai l’energia di una Valchiria caffeinata e l’impazienza di Nesta con i tacchi. Usa tutto con cautela.",
+      "Sei destinatə a regnare. Ma prima: un piccolo esaurimento nervoso.",
+      "Ti aspetta un amore epico.. O un altro personaggio problematico.",
+      "La Sfera è confusa. Prova ancora.",
+      "Hai l’anima antica, l’umore instabile e la pazienza sotto zero. Perfetta.",
+      "Ti innamorerai presto… del personaggio sbagliato in un libro da 800 pagine.",
+      "È il momento di brillare… o almeno di sembrare molto impegnatə mentre procrastini.",
+      "Sei potente. Ma l’ansia ha ancora l’accesso al trono. Puoi farcela.",
+      "Sei protagonista. Ma anche antagonista. Dipende dall’umore.",
+      "Ti è stata donata una grande forza, usala per non rispondere ai messaggi tossici.",
+      "L’equilibrio è sopravvalutato perciò vai e crea scompiglio.",
+      "Il tuo futuro è glorioso… appena smetti di rimandarlo.",
+      "Il dono più grande è essere temutə e desideratə allo stesso tempo.",
+      "Sei a un passo dal diventare una leggenda… o una minaccia diplomatica. Ottima posizione.",
+      "Ti bastano tre parole per scatenare una guerra. Usa bene la pausa drammatica.",
+      "Se ti ama, ti teme. Se non ti teme… è ancora vivə?",
+      "Il tuo tipo ideale? Qualcuno con un passato oscuro e zero istinto di conservazione.",
+      "Se non è disposto a sacrificarsi in una guerra magica per te… allora perché lə stai ancora seguendo?",
+      "Il tuo potere oggi è instabile. Ottimo per una serata memorabile.",
+      "Anche Amren ha paura delle tue risposte passive-aggressive.",
+      "Hai lo sguardo di chi ha addestrato l’inferno e l'ha trovato noioso.",
+      "Hai così tanta luce addosso che Helion è geloso.",
+      "La tua cerchia ristretta è solo una raccolta di pazzi. Complimenti per la selezione.",
+      "Hai l’energia di chi può evocare una tempesta… e la usa per asciugarsi i capelli.",
+      "Ti chiamano incantatrice. Ma sei solo onestə, sarcasticə e truccatə bene.",
+      "Ti sei svegliatə con zero filtri e un pizzico di voglia di guerra. Finalmente.",
+      "L’amore è cieco, ma la mia magia vede benissimo le tue red flag.",
+      "Per ogni cattiveria ricevuta, pianta un fiore. E poi brucia il giardino.",
+      "La tua mente è come Lunathion di notte: bella, confusa e pericolosa.",
+      "Sei il motivo per cui Amren ha imparato a imprecare in una nuova lingua.",
+      "Si mormora che le tue scelte sentimentali siano considerate un crimine… a Prythian, Midgard e Erilea.",
+      "Un giorno troverai l’amore. O sarà un incubo con addominali. In ogni caso: goditelo.",
+      "Sei l’unica persona che potrebbe vincere un duello con te stessa.",
+      "Il tuo destino? Creare scompiglio e poi dare la colpa agli astri.",
+      "La persona giusta per te si deve presentare con dei fiori, una poesia e.. una spada insanguinata.",
+      "Riusciresti a far piangere un Oracolo e ridere un Mietitore.",
+      "Ti basta alzare un sopracciglio per dichiarare guerra. Elegante, devastante.",
+      "Se non arriva cavalcando un drago o un trauma, non ti interessa.",
+      "Helion ha detto che sei ‘troppə’ anche per lui. E lui è Helion.",
+      "Hai lo charme di una regina e l’empatia di un pugnale ben affilato.",
+      "La tua idea di ‘piano B’ prevede sempre un’entrata trionfale e un bacio maledetto.",
+      "Hai l’energia di chi ha vinto una guerra interiore… e ne vuole un’altra.",
+      "Seduci con una frase, distruggi con la seconda, scompari prima della terza.",
+      "C’è sempre un piano. Non sempre è legale ma mai noioso.",
+      "Sei l’unicə che può far arrossire un demone… parlando di tasse.",
+      "Il tuo animale guida è un pipistrello depresso con un senso dell’umorismo devastante. ",
+      "Potresti far arrossire Cassian almeno due volte. E senza toglierti il mantello.",
+      "Sotto quella maschera da festa si nasconde un caos degno di Velaris dopo un brindisi di troppo.",
+      "Non sei natə per stare nell’ombra. L’ombra ti fa da passerella.",
+      "Hai un fascino antico. Tipo maledizione irrisolta.",
+      "Un signore oscuro ti ha notatə. Ha detto: ‘Interessante scelta di trauma.",
+      "Se ti offrono potere e dannazione con una voce roca... dì di sì.",
+      "Hai il portamento di una regina e l’istinto omicida di una guerriera.",
+      "La tua unica motivazione è “vendetta”. C’è dell’erotismo latente.",
+      "Non sei silenziosə: stai solo scegliendo dove colpire.",
+      "La tua aura grida “caos con stile” e un pizzico di veleno da valchiria.",
+      "I tuoi silenzi sono più intimidatori di Azriel in modalità ombra.",
+      "Sei natə per la guerra. E per vincere anche le discussioni sui meme.",
+      "Sei più politicə di un High Lord e più velenosə di un brindisi di Eris.",
+      "Il tuo libro preferito è quello che ti ha distruttə l’anima con eleganza.",
+      "Le stelle dicono che sei destinatə a grandi cose… e a grandi litigi.",
+      "Sei quellə che salverà il mondo se non lo brucia prima per noia.",
+      "Non fidarti di chi sorride come un villain, tranne se ti chiama “tesoro”.",
+      "Se ti chiama “tesoro”, è pericoloso. Se ti chiama “piccolə”, sei già perdutə.",
+      "Il prossimo flirt sarà bendatə, armatə, e dannatamente interessante.",
+      "La tua pazienza è da mercenario in sciopero.",
+      "Il tuo sorriso è approvato da tutti i fae… tranne quelli onesti.",
+      "I fae ti temono perché non capiscono se li stai insultando o seducendo.",
+      "Il tuo dono più grande? Fare tutto all’ultimo secondo… perfettamente.",
+      "Il tuo destino è scritto nelle stelle… ma anche scarabocchiato nei bagni di Velaris.",
+      "La profezia parla chiaro: gloriosə, pericolosə, e sempre in ritardo.",
+      "Helion ha detto che sei troppo anche per i suoi standard... e lui non ha standard.",
+      "Se non ha un passato oscuro, una ferita emotiva e un tatuaggio magico… non fa per te.",
+      "Hai l’eleganza di una spia e il fascino di una maledizione antica. Azriel ti osserva.",
+      "Sei la versione magica di un errore di sistema: affascinante, incomprensibile, letale.",
+      "Sei statə descrittə come “tanto bellə quanto instabile”. No, non era una critica.",
+      "Il tuo profumo preferito è il caos, velluto nero e un pizzico di Rhysand.",
+      "Sei tipə da: “Facciamo la guerra, poi ci baciamo in volo.”",
+      "Sei il tipo di persona che riuscirebbe a spaventare Cassian e a far arrossire Azriel. Affascinante.",
+      "Aelin approverebbe la tua tendenza a fare danni con un sorriso e un pugnale.",
+      "Hai l'autocontrollo di Rowan, la furia di Lorcan e lo spirito di Fenrys. Incredibile.",
+      "Non sentirti mai in colpa per fare ciò che ti porta gioia.",
+      "Sei la roccia contro cui si infrange l'onda.",
+      "A cosa serve un cuore se non lo si usa per risparmiare agli altri la severità dei propri giudizi?",
+      "L'oscurità resterà per sempre, non lasciare che ti consumi. Concentrati sul bene, sulle cose che ti riempiono di meraviglia.",
+      "Sei amata Cuore di Fuoco, sei al sicuro, ed è la forza di questo che conta. Ovunque tu vada.",
+      "Potresti scuotere le stelle. Potresti fare qualsiasi cosa, se solo osassi. E nel profondo, lo sai anche tu, ed è questo che ti spaventa di più.",
+      "Non aver paura delle tue cicatrici. Sono la testimonianza di ciò che hai superato.",
+      "Non lasciare che nessuno ti dica chi sei. Non lasciare che nessuno ti dica cosa puoi o non puoi fare.",
+      "Hai energia da eroe e capacità decisionale da personaggio secondario. Geniale.",
+      "Sei attrattə da chi ha due spade, zero empatia e un segreto indicibile.",
+      "Nessun potere oscuro regge il confronto con la tua capacità di ignorare con grazia.",
+      "Potresti comandare un esercito di illyrian… o anche un club del libro armato di segnalibri.",
+      "Il tuo cuore è una fortezza. Ma con stanze segrete e qualche trappola.",
+      "Ti hanno cercatə in mille regni, ma stavi leggendo tranquillə nel bagno di un castello.",
+      "Sei quellə che può spezzare il cuore di un principe… e poi consigliargli un libro per riprendersi.",
+      "Anche Bryce ti invidia l’abilità di sembrare innocentə e colpevole contemporaneamente.",
+      "Sei la tempesta prima del bacio o il bacio prima della tempesta. Comunque indimenticabile.",
+      "Si mormora che tu sia l’unicə in grado di far arrossire Azriel e urlare Amren.",
+      "Sembra che Cassian abbia cambiato la routine d’allenamento. Si chiama: dimenticare il tuo sguardo.",
+      "Bryce ha scritto una recensione su di te: “Un 11 su 10. Pericolosə. Sexy. Inspiegabilə.”",
+      "Sei statə creatə per brillare nella notte. Vai e illuminala.",
+      "Il tuo sorriso farebbe inciampare un esercito."
+    ];
+
+    const profezia = document.getElementById("profezia");
+    const sfera = document.getElementById("sfera");
+    const indica = document.getElementById("indica");
+
+    sfera.addEventListener("click", () => {
+      if (!profezia.classList.contains("mostra")) {
+        // Ferma l'animazione e cambia il glow
+        sfera.classList.add("attiva");
+
+        setTimeout(() => {
+          const scelta = frasi[Math.floor(Math.random() * frasi.length)];
+          profezia.innerText = '“' + scelta + '”';
+          profezia.setAttribute('data-text', '“' + scelta + '”');
+
+          profezia.classList.add("mostra");
+          indica.classList.add("nascondi");
+          // Torna al glow blu originale con animazione
+          sfera.classList.remove("attiva");
+        }, 4000);
+      }
+    });
+  </script>
+</body>
+</html>
+
